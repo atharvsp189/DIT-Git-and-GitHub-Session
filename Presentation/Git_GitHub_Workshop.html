@@ -1,0 +1,2633 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Git and GitHub Workshop</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      :root {
+        --bg: #f6f8fc;
+        --bg-card: #ffffff;
+        --bg-elevated: #eef2f7;
+        --border: #d7dee9;
+        --text: #1f2937;
+        --text-muted: #5b6473;
+        --text-dim: #93a0b3;
+        --accent: #2563eb;
+        --accent-glow: rgba(37, 99, 235, 0.1);
+        --green: #15803d;
+        --red: #b91c1c;
+        --yellow: #b45309;
+        --purple: #7c3aed;
+        --orange: #c2410c;
+        --font-sans:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+          sans-serif;
+        --font-mono:
+          "SF Mono", Monaco, "Cascadia Code", "Fira Code", Consolas, monospace;
+      }
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+      }
+      body {
+        font-family: var(--font-sans);
+        font-size: 17px;
+        background:
+          radial-gradient(
+            circle at top left,
+            rgba(37, 99, 235, 0.08),
+            transparent 30%
+          ),
+          linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);
+        color: var(--text);
+      }
+      .deck {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      .slide {
+        display: none;
+        flex: 1;
+        flex-direction: column;
+        padding: 24px 32px;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.5s ease-out;
+        overflow-y: auto;
+        background: rgba(255, 255, 255, 0.72);
+      }
+      .slide.active {
+        display: flex;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .slide-header {
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+      .slide-title {
+        font-size: 38px;
+        font-weight: 700;
+        line-height: 1.15;
+        margin-bottom: 12px;
+      }
+      .slide-subtitle {
+        font-size: 18px;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+        font-weight: 400;
+      }
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 12px;
+        box-shadow: 0 8px 28px rgba(15, 23, 42, 0.04);
+        line-height: 1.45;
+      }
+      .code-block {
+        font-family: var(--font-mono);
+        background: #0f172a;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 20px;
+        font-size: 16px;
+        line-height: 1.7;
+        overflow-x: auto;
+      }
+      .code-block .cmd {
+        color: var(--accent);
+      }
+      .code-block .comment {
+        color: var(--text-dim);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--bg-elevated);
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+      }
+      .btn:hover {
+        background: var(--border);
+        border-color: var(--text-muted);
+      }
+      .btn-primary {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+      }
+      .btn-primary:hover {
+        background: #3b82f6;
+      }
+      .nav-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 40px;
+        border-top: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+      }
+      .nav-dots {
+        display: flex;
+        gap: 8px;
+      }
+      .nav-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #c4cfdd;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .nav-dot.active {
+        background: var(--accent);
+        width: 24px;
+        border-radius: 4px;
+      }
+      .nav-info {
+        font-size: 15px;
+        color: var(--text-muted);
+      }
+      .git-flow {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+        margin: 32px 0;
+      }
+      .flow-box {
+        padding: 14px 28px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 16px;
+        text-align: center;
+        min-width: 220px;
+      }
+      .flow-wd {
+        background: var(--red);
+        color: #fff;
+      }
+      .flow-sa {
+        background: var(--yellow);
+        color: #000;
+      }
+      .flow-lr {
+        background: var(--green);
+        color: #fff;
+      }
+      .flow-rr {
+        background: var(--purple);
+        color: #fff;
+      }
+      .flow-arrow {
+        font-size: 22px;
+        color: var(--text-muted);
+        font-weight: 300;
+      }
+      .flow-label {
+        font-family: var(--font-mono);
+        font-size: 14px;
+        color: var(--accent);
+        background: var(--bg-elevated);
+        padding: 6px 16px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+      }
+      .meme-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-top: 16px;
+      }
+      .meme-item {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        font-family: var(--font-mono);
+        font-size: 14px;
+        color: var(--text-muted);
+      }
+      .meme-item .zip-name {
+        color: var(--orange);
+        font-weight: 600;
+        font-size: 16px;
+        margin-top: 8px;
+      }
+      .checkpoint {
+        border-left: 3px solid var(--green);
+        padding-left: 16px;
+        margin: 20px 0;
+      }
+      .checkpoint-title {
+        font-weight: 600;
+        color: var(--green);
+        font-size: 15px;
+        margin-bottom: 6px;
+      }
+      .repo-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-top: 16px;
+      }
+      .repo-card {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 18px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: block;
+        color: inherit;
+      }
+      .repo-card:hover {
+        border-color: var(--accent);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+      .repo-name {
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--accent);
+      }
+      .repo-meta {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: 6px;
+      }
+      .repo-stars {
+        color: var(--yellow);
+      }
+      .cheat-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+      .cheat-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 10px 12px;
+        background: var(--bg-elevated);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+      }
+      .cheat-cmd {
+        font-family: var(--font-mono);
+        color: var(--accent);
+        font-size: 14px;
+        min-width: 150px;
+      }
+      .cheat-desc {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+      .terminal {
+        background: #0f172a;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 12px 0;
+      }
+      .terminal-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        background: var(--bg-elevated);
+        border-bottom: 1px solid var(--border);
+      }
+      .terminal-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+      .td-red {
+        background: var(--red);
+      }
+      .td-yellow {
+        background: var(--yellow);
+      }
+      .td-green {
+        background: var(--green);
+      }
+      .terminal-body {
+        padding: 14px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .terminal-body .prompt {
+        color: var(--green);
+      }
+      .tag {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .tag-green {
+        background: rgba(63, 185, 80, 0.15);
+        color: var(--green);
+      }
+      .tag-purple {
+        background: rgba(163, 113, 247, 0.15);
+        color: var(--purple);
+      }
+      .tag-yellow {
+        background: rgba(210, 153, 34, 0.15);
+        color: var(--yellow);
+      }
+      .big-number {
+        font-size: 54px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .big-label {
+        font-size: 15px;
+        color: var(--text-muted);
+        margin-top: 10px;
+      }
+      .flex-row {
+        display: flex;
+        gap: 28px;
+        align-items: stretch;
+      }
+      .flex-1 {
+        flex: 1;
+      }
+      .mt-16 {
+        margin-top: 16px;
+      }
+      .mt-24 {
+        margin-top: 24px;
+      }
+      .meme-img {
+        max-width: 100%;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        display: block;
+      }
+      .visual-frame {
+        width: min(760px, 100%);
+        height: min(62vh, 580px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        overflow: hidden;
+      }
+      .visual-frame .meme-img {
+        width: auto;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border: 0;
+      }
+      .thank-you {
+        width: min(760px, 100%);
+        text-align: center;
+      }
+      .thank-you .slide-title {
+        font-size: clamp(44px, 7vw, 72px);
+      }
+      .slide [style*="font-size: 13px"] {
+        font-size: 15px !important;
+      }
+      .slide [style*="font-size: 14px"] {
+        font-size: 16px !important;
+      }
+      .slide [style*="font-size: 15px"] {
+        font-size: 17px !important;
+      }
+      .media-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 22px;
+        align-items: center;
+      }
+      .media-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+      }
+      .media-card img {
+        width: 100%;
+        display: block;
+        border-radius: 12px;
+      }
+      .media-caption {
+        margin-top: 12px;
+        font-size: 14px;
+        color: var(--text-muted);
+        line-height: 1.5;
+      }
+      .brand-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 26px;
+        flex-wrap: wrap;
+      }
+      .brand-pill {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+      }
+      .brand-logo {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+        display: block;
+      }
+      .portrait-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+      }
+      .portrait-img {
+        width: 100%;
+        max-height: 180px;
+        object-fit: cover;
+        border-radius: 12px;
+        display: block;
+      }
+      .media-card img,
+      .portrait-img,
+      .repo-card img {
+        max-width: 100%;
+      }
+      .media-card img {
+        max-height: 140px;
+        object-fit: contain;
+      }
+      .portrait-img {
+        max-height: 180px;
+        object-fit: cover;
+      }
+      .slide-title,
+      .slide-subtitle,
+      .slide-header {
+        max-width: 100%;
+      }
+      .project-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .project-line {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 14px 16px;
+        border-radius: 10px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+      }
+      .project-line strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+      .project-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--accent-glow);
+        color: var(--accent);
+        flex: 0 0 auto;
+      }
+      .photo-strip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+      .photo-strip figure {
+        margin: 0;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(15, 23, 42, 0.05);
+      }
+      .photo-strip img {
+        width: 100%;
+        display: block;
+      }
+      .photo-strip figcaption {
+        padding: 10px 12px 12px;
+        font-size: 13px;
+        color: var(--text-muted);
+        line-height: 1.4;
+      }
+      .comparison {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .comparison-col {
+        padding: 24px;
+        border-radius: 12px;
+      }
+      .comparison-wrong {
+        background: rgba(248, 81, 73, 0.06);
+        border: 1px solid rgba(248, 81, 73, 0.25);
+      }
+      .comparison-right {
+        background: rgba(63, 185, 80, 0.06);
+        border: 1px solid rgba(63, 185, 80, 0.25);
+      }
+      .comparison-title {
+        font-weight: 600;
+        font-size: 18px;
+        margin-bottom: 16px;
+      }
+      .comparison-wrong .comparison-title {
+        color: var(--red);
+      }
+      .comparison-right .comparison-title {
+        color: var(--green);
+      }
+      .timeline {
+        position: relative;
+        padding-left: 28px;
+      }
+      .timeline::before {
+        content: "";
+        position: absolute;
+        left: 7px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #dbe4ee;
+      }
+      .timeline-item {
+        position: relative;
+        margin-bottom: 24px;
+      }
+      .timeline-item::before {
+        content: "";
+        position: absolute;
+        left: -25px;
+        top: 5px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--accent);
+        border: 2px solid var(--bg);
+      }
+      .timeline-year {
+        font-family: var(--font-mono);
+        font-size: 14px;
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .timeline-text {
+        font-size: 17px;
+        color: var(--text-muted);
+        margin-top: 6px;
+        line-height: 1.5;
+      }
+      .hands-on-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--accent-glow);
+        border: 1px solid var(--accent);
+        color: var(--accent);
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 20px;
+      }
+      .insta-analogy {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        margin: 18px 0;
+        flex-wrap: wrap;
+      }
+      .insta-box {
+        text-align: center;
+        padding: 14px;
+        border-radius: 12px;
+        min-width: 130px;
+      }
+      .insta-git {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+      }
+      .insta-real {
+        background: rgba(88, 166, 255, 0.08);
+        border: 1px solid var(--accent);
+      }
+      .insta-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+      }
+      .insta-value {
+        font-weight: 600;
+        font-size: 15px;
+      }
+      .insta-arrow {
+        color: var(--text-muted);
+        font-size: 22px;
+      }
+      .contribution-graph {
+        display: grid;
+        grid-template-columns: repeat(20, 1fr);
+        gap: 3px;
+        margin: 16px 0;
+        max-width: 340px;
+      }
+      .contrib-cell {
+        aspect-ratio: 1;
+        border-radius: 2px;
+      }
+      .c0 {
+        background: var(--bg-elevated);
+      }
+      .c1 {
+        background: rgba(63, 185, 80, 0.3);
+      }
+      .c2 {
+        background: rgba(63, 185, 80, 0.5);
+      }
+      .c3 {
+        background: rgba(63, 185, 80, 0.7);
+      }
+      .c4 {
+        background: var(--green);
+      }
+      .hero-emoji {
+        font-size: 72px;
+        margin-bottom: 20px;
+      }
+      .slide-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .slide-pad {
+        width: min(1120px, 100%);
+        padding-bottom: 48px;
+      }
+      /* Page 3: center the session message while keeping each card readable. */
+      #slide-1 .slide-pad {
+        text-align: center;
+      }
+      #slide-1 .project-line {
+        text-align: left;
+      }
+      .intro-layout {
+        width: min(880px, 100%);
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr);
+        gap: 40px;
+        align-items: center;
+      }
+      .intro-photo {
+        width: 220px;
+        height: 220px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 5px solid #fff;
+        box-shadow: 0 16px 35px rgba(15, 23, 42, 0.16);
+      }
+      .intro-socials {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 22px;
+      }
+      .intro-social {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 14px;
+        padding: 9px 13px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg-card);
+      }
+      .intro-social:hover {
+        border-color: var(--accent);
+      }
+      @media (max-width: 900px) {
+        .slide {
+          padding: 24px;
+        }
+        .slide-title {
+          font-size: 28px;
+        }
+        .flex-row {
+          flex-direction: column;
+        }
+        .meme-grid,
+        .repo-grid,
+        .cheat-grid,
+        .comparison,
+        .media-grid,
+        .photo-strip {
+          grid-template-columns: 1fr;
+        }
+        .insta-analogy {
+          flex-direction: column;
+        }
+        .intro-layout {
+          grid-template-columns: 1fr;
+          gap: 20px;
+          text-align: center;
+        }
+        .intro-photo {
+          margin: 0 auto;
+        }
+        .intro-socials {
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="deck">
+      <div class="slide active" id="slide-0">
+        <div
+          class="slide-content"
+          style="
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+          "
+        >
+          <div class="slide-header">Git and GitHub Workshop</div>
+          <div class="slide-title" style="font-size: 52px">
+            The Superpower<br />
+            Every Developer Needs
+          </div>
+          <div class="slide-subtitle" style="font-size: 24px">
+            Keep one project, one history, and one clean workflow.
+          </div>
+          <div
+            style="
+              margin-top: 24px;
+              display: flex;
+              gap: 12px;
+              flex-wrap: wrap;
+              justify-content: center;
+            "
+          >
+            <span class="tag tag-green">Add</span>
+            <span class="tag tag-purple">Commit</span>
+            <span class="tag tag-yellow">Push</span>
+          </div>
+          <div class="brand-row">
+            <div class="brand-pill">
+              <img
+                src="assets/git-logo.png"
+                alt="Git logo"
+                class="brand-logo"
+              />
+              <div style="text-align: left">
+                <div style="font-weight: 600">Git</div>
+                <div style="font-size: 13px; color: var(--text-muted)">
+                  Local version control
+                </div>
+              </div>
+            </div>
+            <div class="brand-pill">
+              <img
+                src="assets/github-logo.png"
+                alt="GitHub logo"
+                class="brand-logo"
+              />
+              <div style="text-align: left">
+                <div style="font-weight: 600">GitHub</div>
+                <div style="font-size: 13px; color: var(--text-muted)">
+                  Remote project hosting
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            style="margin-top: 24px; color: var(--text-dim); font-size: 15px"
+          >
+            Use arrow keys or buttons to navigate
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-intro">
+        <div class="intro-layout">
+          <img src="assets/atharv-photo.png" alt="Atharv" class="intro-photo" />
+          <div>
+            <div class="slide-header">About Me</div>
+            <div class="slide-title" style="font-size: 46px">Atharv SP</div>
+            <div
+              class="slide-subtitle"
+              style="font-size: 20px; line-height: 1.6"
+            >
+              AI Engineer at Helpshift<br />
+              Former Intern at RedSeal &amp; ElevateTrust.Ai
+            </div>
+            <div style="font-size: 17px; color: var(--text); line-height: 1.6">
+              Curious, always learning, building, and sharing.
+            </div>
+            <div class="intro-socials">
+              <a
+                class="intro-social"
+                href="https://www.linkedin.com/in/atharvsp189/"
+                target="_blank"
+                rel="noreferrer"
+                >LinkedIn</a
+              >
+              <a
+                class="intro-social"
+                href="https://github.com/atharvsp189"
+                target="_blank"
+                rel="noreferrer"
+                >GitHub</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-1">
+        <div class="slide-pad">
+          <div class="slide-header">Why it helps</div>
+          <div class="slide-title">Why Version Control Matters</div>
+          <div class="slide-subtitle">
+            It keeps a project organized when the file count, the edits, and the
+            teammates start growing.
+          </div>
+          <div style="display: flex; justify-content: center">
+            <div class="project-stack" style="max-width: 760px; width: 100%">
+              <div class="project-line">
+                <div class="project-icon">1</div>
+                <div>
+                  <strong>One project, many saves</strong>
+                  <div style="color: var(--text-muted); font-size: 14px">
+                    Git keeps each checkpoint instead of relying on renamed ZIP
+                    files.
+                  </div>
+                </div>
+              </div>
+              <div class="project-line">
+                <div class="project-icon">2</div>
+                <div>
+                  <strong>Clear history</strong>
+                  <div style="color: var(--text-muted); font-size: 14px">
+                    You can see what changed, when it changed, and who changed
+                    it.
+                  </div>
+                </div>
+              </div>
+              <div class="project-line">
+                <div class="project-icon">3</div>
+                <div>
+                  <strong>Easy collaboration</strong>
+                  <div style="color: var(--text-muted); font-size: 14px">
+                    Everyone can work on the same project without overwriting
+                    each other.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-2">
+        <div class="slide-pad">
+          <div class="slide-header">A Real Reason</div>
+          <div class="slide-title">The Day I Learned to Back Up Properly</div>
+          <div class="flex-row" style="flex: 1; align-items: center">
+            <div class="flex-1">
+              <div class="timeline">
+                <div class="timeline-item">
+                  <div class="timeline-year">Morning</div>
+                  <div class="timeline-text">
+                    Working on a final-year project that had grown for weeks.
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-year">A few minutes later</div>
+                  <div class="timeline-text">
+                    "Let me clean up this folder before I send it."
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-year">Right after that</div>
+                  <div class="timeline-text" style="color: var(--red)">
+                    &#10060; The wrong folder got deleted
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-year">Next</div>
+                  <div class="timeline-text" style="color: var(--red)">
+                    &#10060; Undo did not help
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-year">After that</div>
+                  <div class="timeline-text" style="color: var(--red)">
+                    &#10060; The recycle bin was empty
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-year">Then</div>
+                  <div class="timeline-text" style="color: var(--red)">
+                    &#10060; There was no backup to restore
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-year">A minute later</div>
+                  <div class="timeline-text" style="color: var(--yellow)">
+                    &#128557; Panic is a bad project management tool.
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-year">After that</div>
+                  <div class="timeline-text" style="color: var(--green)">
+                    &#9989; Started using Git for every project.
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="flex-1"
+              style="
+                display: flex;
+                justify-content: center;
+                align-items: center;
+              "
+            >
+              <div
+                style="
+                  text-align: center;
+                  padding: 48px;
+                  border: 2px dashed #cfd8e6;
+                  border-radius: 16px;
+                "
+              >
+                <div style="font-size: 72px; margin-bottom: 16px">
+                  &#128190;
+                </div>
+                <div
+                  style="font-size: 20px; font-weight: 600; color: var(--red)"
+                >
+                  Days of work
+                </div>
+                <div
+                  style="
+                    font-size: 15px;
+                    color: var(--text-muted);
+                    margin-top: 10px;
+                  "
+                >
+                  Fixed by keeping a history
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-3">
+        <div class="slide-pad">
+          <div class="slide-header">Myth Busting</div>
+          <div class="slide-title">Why Git Feels Hard at First</div>
+          <div class="comparison">
+            <div class="comparison-col comparison-wrong">
+              <div class="comparison-title">What people expect</div>
+              <div
+                style="
+                  display: flex;
+                  flex-direction: column;
+                  gap: 12px;
+                  margin-top: 16px;
+                "
+              >
+                <div
+                  class="card"
+                  style="
+                    background: rgba(248, 81, 73, 0.05);
+                    border-color: rgba(248, 81, 73, 0.2);
+                  "
+                >
+                  <div style="font-weight: 600">Too many commands</div>
+                  <div
+                    style="
+                      font-size: 13px;
+                      color: var(--text-muted);
+                      margin-top: 4px;
+                    "
+                  >
+                    Hundreds of scary terminal commands
+                  </div>
+                </div>
+                <div
+                  class="card"
+                  style="
+                    background: rgba(248, 81, 73, 0.05);
+                    border-color: rgba(248, 81, 73, 0.2);
+                  "
+                >
+                  <div style="font-weight: 600">Weird terminology</div>
+                  <div
+                    style="
+                      font-size: 13px;
+                      color: var(--text-muted);
+                      margin-top: 4px;
+                    "
+                  >
+                    "Staging", "Commit", "Rebase"
+                  </div>
+                </div>
+                <div
+                  class="card"
+                  style="
+                    background: rgba(248, 81, 73, 0.05);
+                    border-color: rgba(248, 81, 73, 0.2);
+                  "
+                >
+                  <div style="font-weight: 600">Black screen trauma</div>
+                  <div
+                    style="
+                      font-size: 13px;
+                      color: var(--text-muted);
+                      margin-top: 4px;
+                    "
+                  >
+                    Terminal = hacker movie = scary
+                  </div>
+                </div>
+                <div
+                  class="card"
+                  style="
+                    background: rgba(248, 81, 73, 0.05);
+                    border-color: rgba(248, 81, 73, 0.2);
+                  "
+                >
+                  <div style="font-weight: 600">Afraid of losing code</div>
+                  <div
+                    style="
+                      font-size: 13px;
+                      color: var(--text-muted);
+                      margin-top: 4px;
+                    "
+                  >
+                    "What if I break everything?"
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="comparison-col comparison-right">
+              <div class="comparison-title">What usually happens</div>
+              <div
+                style="
+                  display: flex;
+                  flex-direction: column;
+                  gap: 12px;
+                  margin-top: 16px;
+                "
+              >
+                <div
+                  class="card"
+                  style="
+                    background: rgba(63, 185, 80, 0.05);
+                    border-color: rgba(63, 185, 80, 0.2);
+                  "
+                >
+                  <div style="font-weight: 600">
+                    A small daily set of commands
+                  </div>
+                  <div
+                    style="
+                      font-size: 13px;
+                      color: var(--text-muted);
+                      margin-top: 4px;
+                    "
+                  >
+                    init, add, commit, push, pull, clone
+                  </div>
+                </div>
+                <div
+                  class="card"
+                  style="
+                    background: rgba(63, 185, 80, 0.05);
+                    border-color: rgba(63, 185, 80, 0.2);
+                  "
+                >
+                  <div style="font-weight: 600">A few core ideas</div>
+                  <div
+                    style="
+                      font-size: 13px;
+                      color: var(--text-muted);
+                      margin-top: 4px;
+                    "
+                  >
+                    Working directory, staging, local history, remote copy
+                  </div>
+                </div>
+                <div
+                  class="card"
+                  style="
+                    background: rgba(63, 185, 80, 0.05);
+                    border-color: rgba(63, 185, 80, 0.2);
+                  "
+                >
+                  <div style="font-weight: 600">
+                    VS Code can handle most of it
+                  </div>
+                  <div
+                    style="
+                      font-size: 13px;
+                      color: var(--text-muted);
+                      margin-top: 4px;
+                    "
+                  >
+                    You do not need to live in the terminal
+                  </div>
+                </div>
+                <div
+                  class="card"
+                  style="
+                    background: rgba(63, 185, 80, 0.05);
+                    border-color: rgba(63, 185, 80, 0.2);
+                  "
+                >
+                  <div style="font-weight: 600">Git protects your work</div>
+                  <div
+                    style="
+                      font-size: 13px;
+                      color: var(--text-muted);
+                      margin-top: 4px;
+                    "
+                  >
+                    Each commit gives you a safe checkpoint
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-4">
+        <div class="slide-pad">
+          <div class="slide-header">The Chaos</div>
+          <div class="slide-title">Life Without Version Control</div>
+          <div class="slide-subtitle">
+            Group projects usually start simple and become difficult the moment
+            more than one person edits the same file.
+          </div>
+          <div class="flex-row" style="flex: 1">
+            <div class="flex-1">
+              <div class="terminal">
+                <div class="terminal-header">
+                  <div class="terminal-dot td-red"></div>
+                  <div class="terminal-dot td-yellow"></div>
+                  <div class="terminal-dot td-green"></div>
+                  <span
+                    style="
+                      font-size: 13px;
+                      color: var(--text-muted);
+                      margin-left: 8px;
+                    "
+                    >folder_structure.txt</span
+                  >
+                </div>
+                <div class="terminal-body">
+                  <div style="color: var(--text-muted)">project/</div>
+                  <div style="color: var(--text-muted)">project_backup/</div>
+                  <div style="color: var(--text-muted)">project_backup2/</div>
+                  <div style="color: var(--text-muted)">project_backup3/</div>
+                  <div style="color: var(--text-muted)">project_latest/</div>
+                  <div style="color: var(--text-muted)">
+                    project_latest_final/
+                  </div>
+                  <div style="color: var(--text-muted)">
+                    project_latest_final2/
+                  </div>
+                  <div style="color: var(--text-muted)">
+                    project_latest_final_REAL/
+                  </div>
+                  <div style="color: var(--text-muted)">
+                    project_latest_final_REAL_v2/
+                  </div>
+                  <div style="color: var(--red); margin-top: 10px">
+                    &#10060; Which version is current?
+                  </div>
+                  <div style="color: var(--red)">
+                    &#10060; Who changed this line?
+                  </div>
+                  <div style="color: var(--red)">
+                    &#10060; What caused the bug?
+                  </div>
+                  <div style="color: var(--red)">
+                    &#10060; How do we combine changes safely?
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="flex-1"
+              style="
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+                justify-content: center;
+              "
+            >
+              <div class="card" style="border-color: var(--yellow)">
+                <div
+                  style="
+                    font-weight: 600;
+                    color: var(--yellow);
+                    margin-bottom: 8px;
+                  "
+                >
+                  &#128231; The Email Era
+                </div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  Emailing files back and forth until nobody knows which copy is
+                  latest.
+                </div>
+              </div>
+              <div class="card" style="border-color: var(--yellow)">
+                <div
+                  style="
+                    font-weight: 600;
+                    color: var(--yellow);
+                    margin-bottom: 8px;
+                  "
+                >
+                  &#128190; The Pen Drive Era
+                </div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  Passing a pen drive around to get the current folder.
+                </div>
+              </div>
+              <div class="card" style="border-color: var(--yellow)">
+                <div
+                  style="
+                    font-weight: 600;
+                    color: var(--yellow);
+                    margin-bottom: 8px;
+                  "
+                >
+                  &#9729; The Dropbox Era
+                </div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  Cloud sync helps, but it still does not replace a commit
+                  history.
+                </div>
+              </div>
+              <div class="card" style="border-color: var(--green)">
+                <div
+                  style="
+                    font-weight: 600;
+                    color: var(--green);
+                    margin-bottom: 8px;
+                  "
+                >
+                  &#128640; The Git Era
+                </div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  Everyone works on the same project, and every change has a
+                  record.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-5">
+        <div class="slide-pad">
+          <div class="slide-header">History</div>
+          <div class="slide-title">Where Git Came From</div>
+          <div class="slide-subtitle">
+            Git was built to solve a real collaboration problem for the Linux
+            kernel team.
+          </div>
+          <div class="flex-row" style="flex: 1; align-items: center">
+            <div class="flex-1">
+              <div class="timeline">
+                <div class="timeline-item">
+                  <div class="timeline-year">1991</div>
+                  <div class="timeline-text">
+                    The Linux kernel project starts and quickly attracts many
+                    contributors.
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-year">2002</div>
+                  <div class="timeline-text">
+                    The team uses BitKeeper, then the free license is revoked.
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-year">2005</div>
+                  <div
+                    class="timeline-text"
+                    style="color: var(--accent); font-weight: 600"
+                  >
+                    Linus Torvalds builds Git in about 10 days
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-year">Goals</div>
+                  <div class="timeline-text">
+                    Fast &#9889; | Distributed &#127760; | Reliable &#128737;
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-year">Today</div>
+                  <div class="timeline-text">
+                    Used by millions of developers across nearly every software
+                    team.
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="flex-1"
+              style="
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              <div class="portrait-card" style="max-width: 320px">
+                <img
+                  src="assets/linus-torvalds-photo.jpg"
+                  alt="Linus Torvalds"
+                  class="portrait-img"
+                />
+                <div style="text-align: center; margin-top: 14px">
+                  <div style="font-size: 22px; font-weight: 700">
+                    Linus Torvalds
+                  </div>
+                  <div style="font-size: 14px; color: var(--text-muted)">
+                    Creator of Linux and Git
+                  </div>
+                </div>
+              </div>
+              <div
+                class="card"
+                style="
+                  text-align: center;
+                  border-color: var(--purple);
+                  min-width: 180px;
+                "
+              >
+                <div class="big-number" style="color: var(--purple)">10</div>
+                <div class="big-label">Days to build the first version</div>
+              </div>
+              <div
+                class="card"
+                style="
+                  text-align: center;
+                  border-color: var(--accent);
+                  min-width: 180px;
+                "
+              >
+                <div class="big-number" style="color: var(--accent)">100M+</div>
+                <div class="big-label">Developers who use Git today</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-6">
+        <div class="slide-pad">
+          <div class="slide-header">Clarification</div>
+          <div class="slide-title">Git vs GitHub</div>
+          <div class="slide-subtitle">
+            They are related, but they do different jobs.
+          </div>
+          <div class="flex-row" style="flex: 1; gap: 32px">
+            <div
+              class="flex-1 card"
+              style="
+                border-color: var(--orange);
+                background: rgba(210, 153, 34, 0.05);
+              "
+            >
+              <div style="text-align: center; margin-bottom: 24px">
+                <img
+                  src="assets/git-logo.png"
+                  alt="Git logo"
+                  class="brand-logo"
+                  style="width: 56px; height: 56px; margin: 0 auto"
+                />
+                <div
+                  style="
+                    font-size: 26px;
+                    font-weight: 700;
+                    margin-top: 14px;
+                    color: var(--orange);
+                  "
+                >
+                  Git
+                </div>
+                <div
+                  style="
+                    font-size: 15px;
+                    color: var(--text-muted);
+                    margin-top: 6px;
+                  "
+                >
+                  The Tool
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 10px">
+                <div
+                  style="
+                    padding: 12px;
+                    background: var(--bg);
+                    border-radius: 8px;
+                    font-size: 15px;
+                  "
+                >
+                  &#9989; Lives on YOUR computer
+                </div>
+                <div
+                  style="
+                    padding: 12px;
+                    background: var(--bg);
+                    border-radius: 8px;
+                    font-size: 15px;
+                  "
+                >
+                  &#9989; Tracks code changes
+                </div>
+                <div
+                  style="
+                    padding: 12px;
+                    background: var(--bg);
+                    border-radius: 8px;
+                    font-size: 15px;
+                  "
+                >
+                  &#9989; Works offline
+                </div>
+                <div
+                  style="
+                    padding: 12px;
+                    background: var(--bg);
+                    border-radius: 8px;
+                    font-size: 15px;
+                  "
+                >
+                  &#9989; Free & open source
+                </div>
+                <div
+                  style="
+                    padding: 12px;
+                    background: var(--bg);
+                    border-radius: 8px;
+                    font-size: 15px;
+                  "
+                >
+                  &#9989; Command line tool
+                </div>
+              </div>
+            </div>
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 36px;
+                color: var(--text-muted);
+                font-weight: 300;
+              "
+            >
+              vs
+            </div>
+            <div
+              class="flex-1 card"
+              style="
+                border-color: var(--accent);
+                background: rgba(88, 166, 255, 0.05);
+              "
+            >
+              <div style="text-align: center; margin-bottom: 24px">
+                <img
+                  src="assets/github-logo.png"
+                  alt="GitHub logo"
+                  class="brand-logo"
+                  style="width: 56px; height: 56px; margin: 0 auto"
+                />
+                <div
+                  style="
+                    font-size: 26px;
+                    font-weight: 700;
+                    margin-top: 14px;
+                    color: var(--accent);
+                  "
+                >
+                  GitHub
+                </div>
+                <div
+                  style="
+                    font-size: 15px;
+                    color: var(--text-muted);
+                    margin-top: 6px;
+                  "
+                >
+                  The Platform
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 10px">
+                <div
+                  style="
+                    padding: 12px;
+                    background: var(--bg);
+                    border-radius: 8px;
+                    font-size: 15px;
+                  "
+                >
+                  &#9989; Lives on THE INTERNET
+                </div>
+                <div
+                  style="
+                    padding: 12px;
+                    background: var(--bg);
+                    border-radius: 8px;
+                    font-size: 15px;
+                  "
+                >
+                  &#9989; Stores your repositories
+                </div>
+                <div
+                  style="
+                    padding: 12px;
+                    background: var(--bg);
+                    border-radius: 8px;
+                    font-size: 15px;
+                  "
+                >
+                  &#9989; Collaboration & social coding
+                </div>
+                <div
+                  style="
+                    padding: 12px;
+                    background: var(--bg);
+                    border-radius: 8px;
+                    font-size: 15px;
+                  "
+                >
+                  &#9989; Free for public repos
+                </div>
+                <div
+                  style="
+                    padding: 12px;
+                    background: var(--bg);
+                    border-radius: 8px;
+                    font-size: 15px;
+                  "
+                >
+                  &#9989; Website + Desktop app
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card mt-16" style="text-align: center">
+            <div style="font-size: 15px; color: var(--text-muted)">
+              Alternatives to GitHub:
+              <span style="color: var(--text)">GitLab</span> &#183;
+              <span style="color: var(--text)">Bitbucket</span> &#183;
+              <span style="color: var(--text)">Gitea</span> &#183;
+              <span style="color: var(--text)">Codeberg</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-9">
+        <div class="slide-pad">
+          <div class="slide-header">Core Concept</div>
+          <div class="slide-title">Git in One Picture</div>
+          <div class="slide-subtitle">
+            If you remember one diagram from this session, remember this one.
+          </div>
+          <div
+            class="slide-content"
+            style="justify-content: center; align-items: center"
+          >
+            <div class="git-flow" style="width: 100%; max-width: 500px">
+              <div class="flow-box flow-wd">Working Directory</div>
+              <div class="flow-arrow">&#8595;</div>
+              <div class="flow-label">git add</div>
+              <div class="flow-arrow">&#8595;</div>
+              <div class="flow-box flow-sa">Staging Area</div>
+              <div class="flow-arrow">&#8595;</div>
+              <div class="flow-label">git commit</div>
+              <div class="flow-arrow">&#8595;</div>
+              <div class="flow-box flow-lr">Local Repository</div>
+              <div class="flow-arrow">&#8595;</div>
+              <div class="flow-label">git push</div>
+              <div class="flow-arrow">&#8595;</div>
+              <div class="flow-box flow-rr">GitHub (Remote)</div>
+            </div>
+          </div>
+          <div class="checkpoint">
+            <div class="checkpoint-title">&#127919; CHECKPOINT</div>
+            <div style="font-size: 15px; color: var(--text-muted)">
+              Can you draw this from memory? Try it on paper once before we move
+              on.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-10">
+        <div class="slide-pad">
+          <div class="slide-header">Analogy</div>
+          <div class="slide-title">Think of Git Like Drafting a Post</div>
+          <div class="slide-subtitle">
+            A simple publishing workflow is often easier to remember than the
+            terminology.
+          </div>
+          <div class="slide-content" style="justify-content: center">
+            <div class="insta-analogy">
+              <div class="insta-box insta-git">
+                <div class="insta-label">Project</div>
+                <div class="insta-value">Working files</div>
+              </div>
+              <div class="insta-arrow">=</div>
+              <div class="insta-box insta-real">
+                <div class="insta-label">Drafting</div>
+                <div class="insta-value">Your rough notes</div>
+              </div>
+            </div>
+            <div class="insta-analogy">
+              <div class="insta-box insta-git">
+                <div class="insta-label">Git</div>
+                <div class="insta-value">git add</div>
+              </div>
+              <div class="insta-arrow">=</div>
+              <div class="insta-box insta-real">
+                <div class="insta-label">Drafting</div>
+                <div class="insta-value">Choose what to include</div>
+              </div>
+            </div>
+            <div class="insta-analogy">
+              <div class="insta-box insta-git">
+                <div class="insta-label">Git</div>
+                <div class="insta-value">Staging Area</div>
+              </div>
+              <div class="insta-arrow">=</div>
+              <div class="insta-box insta-real">
+                <div class="insta-label">Drafting</div>
+                <div class="insta-value">Review before posting</div>
+              </div>
+            </div>
+            <div class="insta-analogy">
+              <div class="insta-box insta-git">
+                <div class="insta-label">Git</div>
+                <div class="insta-value">git commit</div>
+              </div>
+              <div class="insta-arrow">=</div>
+              <div class="insta-box insta-real">
+                <div class="insta-label">Drafting</div>
+                <div class="insta-value">Save a version</div>
+              </div>
+            </div>
+            <div class="insta-analogy">
+              <div class="insta-box insta-git">
+                <div class="insta-label">Git</div>
+                <div class="insta-value">git push</div>
+              </div>
+              <div class="insta-arrow">=</div>
+              <div class="insta-box insta-real">
+                <div class="insta-label">Drafting</div>
+                <div class="insta-value">Publish it</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-11">
+        <div
+          class="slide-content"
+          style="justify-content: center; align-items: center; width: 100%"
+        >
+          <div class="visual-frame">
+            <img
+              src="assets/git-add-commit-push.webp"
+              class="meme-img"
+              alt="Saving code meme"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-12">
+        <div class="slide-pad">
+          <div class="slide-header">Commands</div>
+          <div class="slide-title">The Only Commands You Need</div>
+          <div class="slide-subtitle">Start here. The rest can wait.</div>
+          <div class="cheat-grid" style="flex: 1; align-content: center">
+            <div class="cheat-item">
+              <div class="cheat-cmd">git init</div>
+              <div class="cheat-desc">Start tracking a folder</div>
+            </div>
+            <div class="cheat-item">
+              <div class="cheat-cmd">git status</div>
+              <div class="cheat-desc">See what is changed</div>
+            </div>
+            <div class="cheat-item">
+              <div class="cheat-cmd">git add .</div>
+              <div class="cheat-desc">Stage all changes</div>
+            </div>
+            <div class="cheat-item">
+              <div class="cheat-cmd">git commit -m "msg"</div>
+              <div class="cheat-desc">Save a snapshot</div>
+            </div>
+            <div class="cheat-item">
+              <div class="cheat-cmd">git log</div>
+              <div class="cheat-desc">View history</div>
+            </div>
+            <div class="cheat-item">
+              <div class="cheat-cmd">git clone URL</div>
+              <div class="cheat-desc">Download a project</div>
+            </div>
+            <div class="cheat-item">
+              <div class="cheat-cmd">git push</div>
+              <div class="cheat-desc">Upload to GitHub</div>
+            </div>
+            <div class="cheat-item">
+              <div class="cheat-cmd">git pull</div>
+              <div class="cheat-desc">Download updates</div>
+            </div>
+          </div>
+          <div class="checkpoint">
+            <div class="checkpoint-title">&#127919; CHECKPOINT</div>
+            <div style="font-size: 15px; color: var(--text-muted)">
+              Open your terminal. Type
+              <code style="color: var(--accent)">git --version</code>. If it
+              prints a version, you are ready to start.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-hands-on-start">
+        <div class="slide-pad">
+          <div class="slide-header">Hands-On Workshop</div>
+          <div class="slide-title">Exercise 1-3: Initialize & Check</div>
+          <div class="hands-on-badge">&#128187; LIVE CODING</div>
+          <div class="flex-row" style="flex: 1">
+            <div class="flex-1">
+              <div class="terminal">
+                <div class="terminal-header">
+                  <div class="terminal-dot td-red"></div>
+                  <div class="terminal-dot td-yellow"></div>
+                  <div class="terminal-dot td-green"></div>
+                  <span
+                    style="
+                      font-size: 13px;
+                      color: var(--text-muted);
+                      margin-left: 8px;
+                    "
+                    >bash</span
+                  >
+                </div>
+                <div class="terminal-body">
+                  <div><span class="prompt">$</span> mkdir GitWorkshop</div>
+                  <div><span class="prompt">$</span> cd GitWorkshop</div>
+                  <div><span class="prompt">$</span> git init</div>
+                  <div style="color: var(--text-muted)">
+                    Initialized empty Git repository in /GitWorkshop/.git/
+                  </div>
+                  <div><span class="prompt">$</span> touch README.md</div>
+                  <div><span class="prompt">$</span> git status</div>
+                  <div style="color: var(--red)">
+                    Untracked files: README.md
+                  </div>
+                  <div><span class="prompt">$</span> git add README.md</div>
+                  <div><span class="prompt">$</span> git status</div>
+                  <div style="color: var(--green)">
+                    Changes to be committed: README.md
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="flex-1"
+              style="display: flex; flex-direction: column; gap: 14px"
+            >
+              <div class="card">
+                <div
+                  style="
+                    font-weight: 600;
+                    color: var(--accent);
+                    margin-bottom: 8px;
+                  "
+                >
+                  Step 1
+                </div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  Create a folder and enter it. This is the project root.
+                </div>
+              </div>
+              <div class="card">
+                <div
+                  style="
+                    font-weight: 600;
+                    color: var(--accent);
+                    margin-bottom: 8px;
+                  "
+                >
+                  Step 2
+                </div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  Run <code style="color: var(--accent)">git init</code>. Git
+                  now starts tracking the folder.
+                </div>
+              </div>
+              <div class="card">
+                <div
+                  style="
+                    font-weight: 600;
+                    color: var(--accent);
+                    margin-bottom: 8px;
+                  "
+                >
+                  Step 3
+                </div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  Create README.md. Check
+                  <code style="color: var(--accent)">git status</code>. Red
+                  means Git sees the file but has not tracked it yet.
+                </div>
+              </div>
+              <div class="card">
+                <div
+                  style="
+                    font-weight: 600;
+                    color: var(--accent);
+                    margin-bottom: 8px;
+                  "
+                >
+                  Step 4
+                </div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  Run <code style="color: var(--accent)">git add</code>. Check
+                  status again. Green means it is staged and ready.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-hands-on-history">
+        <div class="slide-pad">
+          <div class="slide-header">Hands-On Workshop</div>
+          <div class="slide-title">Exercise 4-7: Commit & Log</div>
+          <div class="hands-on-badge">&#128187; LIVE CODING</div>
+          <div class="flex-row" style="flex: 1">
+            <div class="flex-1">
+              <div class="terminal">
+                <div class="terminal-header">
+                  <div class="terminal-dot td-red"></div>
+                  <div class="terminal-dot td-yellow"></div>
+                  <div class="terminal-dot td-green"></div>
+                  <span
+                    style="
+                      font-size: 13px;
+                      color: var(--text-muted);
+                      margin-left: 8px;
+                    "
+                    >bash</span
+                  >
+                </div>
+                <div class="terminal-body">
+                  <div>
+                    <span class="prompt">$</span> git commit -m "Initial commit"
+                  </div>
+                  <div style="color: var(--text-muted)">
+                    [main (root-commit) a1b2c3d] Initial commit
+                  </div>
+                  <div style="color: var(--text-muted)">
+                    1 file changed, 1 insertion(+)
+                  </div>
+                  <div style="color: var(--text-muted)">
+                    create mode 100644 README.md
+                  </div>
+                  <div style="margin-top: 12px; color: var(--text-muted)">
+                    # Edit README.md now...
+                  </div>
+                  <div><span class="prompt">$</span> git status</div>
+                  <div style="color: var(--yellow)">modified: README.md</div>
+                  <div><span class="prompt">$</span> git add .</div>
+                  <div>
+                    <span class="prompt">$</span> git commit -m "Updated README"
+                  </div>
+                  <div style="margin-top: 12px">
+                    <span class="prompt">$</span> git log
+                  </div>
+                  <div style="color: var(--accent)">
+                    commit b2c3d4e (HEAD -> main)
+                  </div>
+                  <div style="color: var(--text-muted)">
+                    Author: You &lt;you@example.com&gt;
+                  </div>
+                  <div style="color: var(--text-muted)">Date: Today</div>
+                  <div style="color: var(--text-muted)">Updated README</div>
+                  <div style="color: var(--text-dim)">commit a1b2c3d</div>
+                  <div style="color: var(--text-dim)">Initial commit</div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="flex-1"
+              style="display: flex; flex-direction: column; gap: 14px"
+            >
+              <div class="card">
+                <div
+                  style="
+                    font-weight: 600;
+                    color: var(--green);
+                    margin-bottom: 8px;
+                  "
+                >
+                  Step 5: Commit
+                </div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  <code style="color: var(--accent)"
+                    >git commit -m "message"</code
+                  >
+                  saves a clean snapshot of the project.
+                </div>
+              </div>
+              <div class="card">
+                <div
+                  style="
+                    font-weight: 600;
+                    color: var(--green);
+                    margin-bottom: 8px;
+                  "
+                >
+                  Step 6: Modify
+                </div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  Edit the file. Run status again. Yellow means the file has
+                  changed since the last commit.
+                </div>
+              </div>
+              <div class="card">
+                <div
+                  style="
+                    font-weight: 600;
+                    color: var(--green);
+                    margin-bottom: 8px;
+                  "
+                >
+                  Step 7: History
+                </div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  <code style="color: var(--accent)">git log</code> shows the
+                  history of the project. Every commit is a checkpoint.
+                </div>
+              </div>
+              <div class="checkpoint">
+                <div class="checkpoint-title">&#127919; CHECKPOINT</div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  Do you see two commits in your log? That is the whole idea.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-github-demo">
+        <div class="slide-pad">
+          <div class="slide-header">GitHub</div>
+          <div class="slide-title">Connect the Project to GitHub</div>
+          <div class="slide-subtitle">
+            Once the local history is clean, sending it to GitHub is a short
+            final step.
+          </div>
+          <div class="flex-row" style="flex: 1">
+            <div class="flex-1">
+              <div class="terminal">
+                <div class="terminal-header">
+                  <div class="terminal-dot td-red"></div>
+                  <div class="terminal-dot td-yellow"></div>
+                  <div class="terminal-dot td-green"></div>
+                  <span
+                    style="
+                      font-size: 13px;
+                      color: var(--text-muted);
+                      margin-left: 8px;
+                    "
+                    >bash</span
+                  >
+                </div>
+                <div class="terminal-body">
+                  <div style="color: var(--text-muted)">
+                    # 1. Create repo on GitHub (no README)
+                  </div>
+                  <div style="margin-top: 8px">
+                    <span class="prompt">$</span> git remote add origin
+                    https://github.com/you/repo.git
+                  </div>
+                  <div style="color: var(--text-muted)">
+                    # Connect the local project to GitHub
+                  </div>
+                  <div style="margin-top: 8px">
+                    <span class="prompt">$</span> git branch -M main
+                  </div>
+                  <div style="color: var(--text-muted)">
+                    # Rename the default branch if needed
+                  </div>
+                  <div style="margin-top: 8px">
+                    <span class="prompt">$</span> git push -u origin main
+                  </div>
+                  <div style="color: var(--text-muted)">
+                    Enumerating objects: 3, done.
+                  </div>
+                  <div style="color: var(--text-muted)">
+                    Writing objects: 100% (3/3), 245 bytes
+                  </div>
+                  <div style="color: var(--green)">
+                    To github.com:you/repo.git
+                  </div>
+                  <div style="color: var(--green)">
+                    * [new branch] main -> main
+                  </div>
+                  <div
+                    style="
+                      margin-top: 14px;
+                      color: var(--accent);
+                      font-weight: 600;
+                    "
+                  >
+                    &#127881; Your code is now on the internet!
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="flex-1"
+              style="
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+                justify-content: center;
+              "
+            >
+              <div class="card" style="border-color: var(--purple)">
+                <div
+                  style="
+                    font-weight: 600;
+                    color: var(--purple);
+                    margin-bottom: 8px;
+                  "
+                >
+                  &#127760; git remote add
+                </div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  Points your local project at the GitHub repository.
+                </div>
+              </div>
+              <div class="card" style="border-color: var(--green)">
+                <div
+                  style="
+                    font-weight: 600;
+                    color: var(--green);
+                    margin-bottom: 8px;
+                  "
+                >
+                  &#128640; git push
+                </div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  Sends your commits to GitHub so the remote copy stays in sync.
+                </div>
+              </div>
+              <div class="card" style="border-color: var(--accent)">
+                <div
+                  style="
+                    font-weight: 600;
+                    color: var(--accent);
+                    margin-bottom: 8px;
+                  "
+                >
+                  &#128229; git pull
+                </div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  Brings down changes from GitHub when someone else has worked
+                  on the project.
+                </div>
+              </div>
+              <div class="checkpoint">
+                <div class="checkpoint-title">&#127919; CHECKPOINT</div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  Open your GitHub repo in the browser. If the README appears,
+                  the connection worked.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-github-portfolio">
+        <div class="slide-pad">
+          <div class="slide-header">GitHub</div>
+          <div class="slide-title">GitHub as a Project Portfolio</div>
+          <div class="slide-subtitle">
+            A good GitHub profile makes it easier to show real work, not just
+            describe it.
+          </div>
+          <div class="flex-row" style="flex: 1">
+            <div
+              class="flex-1"
+              style="display: flex; flex-direction: column; gap: 14px"
+            >
+              <div class="card">
+                <div
+                  style="font-weight: 600; margin-bottom: 8px; font-size: 17px"
+                >
+                  &#128188; Store Code
+                </div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  Keep projects organized and accessible from anywhere.
+                </div>
+              </div>
+              <div class="card">
+                <div
+                  style="font-weight: 600; margin-bottom: 8px; font-size: 17px"
+                >
+                  &#129309; Collaborate
+                </div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  Work with teammates without sending files by chat or email.
+                </div>
+              </div>
+              <div class="card">
+                <div
+                  style="font-weight: 600; margin-bottom: 8px; font-size: 17px"
+                >
+                  &#127775; Showcase
+                </div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  Your profile becomes a small portfolio of what you have built.
+                </div>
+              </div>
+              <div class="card">
+                <div
+                  style="font-weight: 600; margin-bottom: 8px; font-size: 17px"
+                >
+                  &#127757; Contribute
+                </div>
+                <div style="font-size: 14px; color: var(--text-muted)">
+                  Read issues, open pull requests, and contribute to open source
+                  when you are ready.
+                </div>
+              </div>
+            </div>
+            <div
+              class="flex-1"
+              style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              <div
+                style="
+                  font-size: 15px;
+                  color: var(--text-muted);
+                  margin-bottom: 14px;
+                "
+              >
+                A realistic contribution pattern:
+              </div>
+              <div class="media-card" style="max-width: 100%">
+                <img
+                  src="assets/github_green_streak.png"
+                  alt="GitHub contribution graph"
+                />
+                <div class="media-caption">
+                  Consistent small commits usually matter more than one huge
+                  burst of work.
+                </div>
+              </div>
+              <div
+                style="
+                  margin-top: 18px;
+                  font-size: 14px;
+                  color: var(--text-muted);
+                  text-align: center;
+                "
+              >
+                <span style="color: var(--green); font-weight: 600"
+                  >It does not measure talent.</span
+                ><br />It mostly reflects consistency.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-15">
+        <div class="slide-pad">
+          <div class="slide-header">Inspiration</div>
+          <div class="slide-title">Examples of Real Projects</div>
+          <div class="slide-subtitle">
+            These are the kinds of repositories students and professionals end
+            up working with every day.
+          </div>
+          <div class="repo-grid" style="flex: 1; align-content: center">
+            <a
+              class="repo-card"
+              href="https://github.com/torvalds/linux"
+              target="_blank"
+              ><div class="repo-name">torvalds/linux</div>
+              <div class="repo-meta">The OS powering the internet</div>
+              <div class="repo-meta repo-stars">&#11088; 180k+ stars</div></a
+            >
+            <a
+              class="repo-card"
+              href="https://github.com/microsoft/vscode"
+              target="_blank"
+              ><div class="repo-name">microsoft/vscode</div>
+              <div class="repo-meta">The editor for building and debugging</div>
+              <div class="repo-meta repo-stars">&#11088; 160k+ stars</div></a
+            >
+            <a
+              class="repo-card"
+              href="https://github.com/facebook/react"
+              target="_blank"
+              ><div class="repo-name">facebook/react</div>
+              <div class="repo-meta">Frontend of the modern web</div>
+              <div class="repo-meta repo-stars">&#11088; 230k+ stars</div></a
+            >
+            <a
+              class="repo-card"
+              href="https://github.com/pytorch/pytorch"
+              target="_blank"
+              ><div class="repo-name">pytorch/pytorch</div>
+              <div class="repo-meta">AI/ML framework</div>
+              <div class="repo-meta repo-stars">&#11088; 85k+ stars</div></a
+            >
+            <a
+              class="repo-card"
+              href="https://github.com/python/cpython"
+              target="_blank"
+              ><div class="repo-name">python/cpython</div>
+              <div class="repo-meta">The language itself</div>
+              <div class="repo-meta repo-stars">&#11088; 60k+ stars</div></a
+            >
+            <a
+              class="repo-card"
+              href="https://github.com/langchain-ai/langchain"
+              target="_blank"
+              ><div class="repo-name">langchain-ai/langchain</div>
+              <div class="repo-meta">LLM apps framework</div>
+              <div class="repo-meta repo-stars">&#11088; 90k+ stars</div></a
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-16">
+        <div class="slide-pad">
+          <div class="slide-header">Final</div>
+          <div class="slide-title">What You Learned Today</div>
+          <div class="slide-content" style="justify-content: center">
+            <div class="flex-row" style="flex-wrap: wrap; gap: 16px">
+              <div
+                class="card"
+                style="flex: 1; min-width: 200px; text-align: center"
+              >
+                <div style="font-size: 36px; margin-bottom: 10px">
+                  &#128737;
+                </div>
+                <div style="font-weight: 600; font-size: 17px">
+                  Why Git exists
+                </div>
+                <div
+                  style="
+                    font-size: 13px;
+                    color: var(--text-muted);
+                    margin-top: 6px;
+                  "
+                >
+                  To keep a reliable history of your work
+                </div>
+              </div>
+              <div
+                class="card"
+                style="flex: 1; min-width: 200px; text-align: center"
+              >
+                <div style="font-size: 36px; margin-bottom: 10px">02</div>
+                <div style="font-weight: 600; font-size: 17px">
+                  Git Mental Model
+                </div>
+                <div
+                  style="
+                    font-size: 13px;
+                    color: var(--text-muted);
+                    margin-top: 6px;
+                  "
+                >
+                  Working to staging to local history to remote
+                </div>
+              </div>
+              <div
+                class="card"
+                style="flex: 1; min-width: 200px; text-align: center"
+              >
+                <div style="font-size: 36px; margin-bottom: 10px">03</div>
+                <div style="font-weight: 600; font-size: 17px">
+                  Basic Workflow
+                </div>
+                <div
+                  style="
+                    font-size: 13px;
+                    color: var(--text-muted);
+                    margin-top: 6px;
+                  "
+                >
+                  init, add, commit, push
+                </div>
+              </div>
+              <div
+                class="card"
+                style="flex: 1; min-width: 200px; text-align: center"
+              >
+                <div style="font-size: 36px; margin-bottom: 10px">04</div>
+                <div style="font-weight: 600; font-size: 17px">GitHub</div>
+                <div
+                  style="
+                    font-size: 13px;
+                    color: var(--text-muted);
+                    margin-top: 6px;
+                  "
+                >
+                  A place to publish and share your project
+                </div>
+              </div>
+            </div>
+            <div
+              class="card mt-24"
+              style="
+                text-align: center;
+                border-color: var(--green);
+                background: rgba(63, 185, 80, 0.05);
+              "
+            >
+              <div
+                style="
+                  font-size: 24px;
+                  font-weight: 700;
+                  color: var(--green);
+                  margin-bottom: 14px;
+                "
+              >
+                Next Steps
+              </div>
+              <div style="font-size: 17px; color: var(--text); line-height: 2">
+                Build a small project this week<br />Keep each checkpoint in
+                Git<br />Push your work to GitHub when it is ready<br />Use the
+                history instead of ZIP files
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-17">
+        <div class="slide-pad">
+          <div class="slide-header">Reference</div>
+          <div class="slide-title">Git Cheat Sheet</div>
+          <div class="slide-subtitle">
+            Keep this nearby until the workflow feels automatic.
+          </div>
+          <div
+            class="code-block"
+            style="
+              flex: 1;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              font-size: 16px;
+            "
+          >
+            <div><span class="comment"># Start a project</span></div>
+            <div>
+              <span class="cmd">git init</span>
+              <span class="comment"># Initialize repository</span>
+            </div>
+            <div style="margin-top: 14px">
+              <span class="comment"># Daily workflow</span>
+            </div>
+            <div>
+              <span class="cmd">git status</span>
+              <span class="comment"># Check what changed</span>
+            </div>
+            <div>
+              <span class="cmd">git add .</span>
+              <span class="comment"># Stage all changes</span>
+            </div>
+            <div>
+              <span class="cmd">git add filename</span>
+              <span class="comment"># Stage specific file</span>
+            </div>
+            <div>
+              <span class="cmd">git commit -m "message"</span>
+              <span class="comment"># Save snapshot</span>
+            </div>
+            <div style="margin-top: 14px">
+              <span class="comment"># History & time travel</span>
+            </div>
+            <div>
+              <span class="cmd">git log</span>
+              <span class="comment"># View commit history</span>
+            </div>
+            <div>
+              <span class="cmd">git log --oneline</span>
+              <span class="comment"># Compact history</span>
+            </div>
+            <div style="margin-top: 14px">
+              <span class="comment"># Remote (GitHub)</span>
+            </div>
+            <div>
+              <span class="cmd">git clone URL</span>
+              <span class="comment"># Download project</span>
+            </div>
+            <div>
+              <span class="cmd">git remote add origin URL</span>
+              <span class="comment"># Connect to GitHub</span>
+            </div>
+            <div>
+              <span class="cmd">git push -u origin main</span>
+              <span class="comment"># Upload first time</span>
+            </div>
+            <div>
+              <span class="cmd">git push</span>
+              <span class="comment"># Upload commits</span>
+            </div>
+            <div>
+              <span class="cmd">git pull</span>
+              <span class="comment"># Download updates</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="slide-thank-you">
+        <div class="thank-you">
+          <div class="slide-header">That’s a wrap</div>
+          <div class="slide-title">Thank You</div>
+          <div class="slide-subtitle" style="font-size: 20px; line-height: 1.6">
+            Keep building, keep committing, and keep sharing your work.
+          </div>
+          <div class="intro-socials" style="justify-content: center">
+            <a
+              class="intro-social"
+              href="https://www.linkedin.com/in/atharvsp189/"
+              target="_blank"
+              rel="noreferrer"
+              >Connect on LinkedIn</a
+            >
+            <a
+              class="intro-social"
+              href="https://github.com/atharvsp189"
+              target="_blank"
+              rel="noreferrer"
+              >Follow on GitHub</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-bar">
+      <button class="btn" id="prevBtn">&#8592; Previous</button>
+      <div class="nav-dots" id="navDots"></div>
+      <div class="nav-info">
+        <span id="slideNum">1</span> / <span id="slideTotal"></span>
+      </div>
+      <button class="btn btn-primary" id="nextBtn">Next &#8594;</button>
+    </div>
+
+    <script>
+      const slides = document.querySelectorAll(".slide");
+      const totalSlides = slides.length;
+      document.getElementById("slideTotal").textContent = totalSlides;
+      let current = 0;
+      const dotsContainer = document.getElementById("navDots");
+      for (let i = 0; i < totalSlides; i++) {
+        const dot = document.createElement("div");
+        dot.className = "nav-dot" + (i === 0 ? " active" : "");
+        dot.onclick = () => goTo(i);
+        dotsContainer.appendChild(dot);
+      }
+      function update() {
+        slides.forEach((s, i) => s.classList.toggle("active", i === current));
+        document
+          .querySelectorAll(".nav-dot")
+          .forEach((d, i) => d.classList.toggle("active", i === current));
+        document.getElementById("slideNum").textContent = current + 1;
+        document.getElementById("prevBtn").disabled = current === 0;
+        document.getElementById("nextBtn").disabled =
+          current === totalSlides - 1;
+        document.getElementById("prevBtn").style.opacity =
+          current === 0 ? "0.4" : "1";
+        document.getElementById("nextBtn").style.opacity =
+          current === totalSlides - 1 ? "0.4" : "1";
+      }
+      function goTo(n) {
+        if (n >= 0 && n < totalSlides) {
+          current = n;
+          update();
+        }
+      }
+      document.getElementById("prevBtn").onclick = () => goTo(current - 1);
+      document.getElementById("nextBtn").onclick = () => goTo(current + 1);
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === " ") goTo(current + 1);
+        if (e.key === "ArrowLeft") goTo(current - 1);
+      });
+      update();
+    </script>
+  </body>
+</html>
