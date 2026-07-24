@@ -19,4 +19,5 @@ Class average: 81.0
 ## Files
 
 - `app.py` contains the calculator.
+- `students.py` will contain sample student names after the rebase demo.
 - `DEMO.md` is the instructor's Git command guide.
