@@ -2,6 +2,8 @@
 
 A deliberately small Python project for learning Git.
 
+This project is intentionally simple: it keeps the focus on Git commands rather than Python syntax.
+
 ## Run the program
 
 ```bash
