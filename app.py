@@ -22,7 +22,7 @@ def calculate_grade(mark):
 def main():
     marks = [mark for _, mark in STUDENTS]
     average = calculate_average(marks)
-    print("Student Results")
+    print("Student Marks Summary")
     print("Students: " + ", ".join(name for name, _ in STUDENTS))
     print(f"Class average: {average:.1f}")
     print(f"Grade for the average: {calculate_grade(average)}")
