@@ -1,233 +1,353 @@
-# Git Hands-On Guide
+# Build the Student Marks Calculator with Git
 
-Work through these steps from the `Hands-On` folder. Type each command yourself and read its output before moving on.
+This guide recreates the Git history and Python project in this repository. Start in a new empty folder so you can type every command and make every change yourself.
 
-> This exercise changes Git history locally. Do not run `git push`, and do not use `git rebase` on a shared branch unless your instructor tells you to.
+## Before you begin
 
-## 1. Check the starting point
+Check that Git and Python are available:
 
 ```bash
+git --version
+python3 --version
+```
+
+If this is your first Git repository, set your name and email once:
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+```
+
+## 1. Create the project and initialize Git
+
+```bash
+mkdir student-marks-calculator
+cd student-marks-calculator
+git init
 git status
-git branch --show-current
+```
+
+`git init` creates a Git repository. At this stage, Git has no commits and no project files.
+
+Create a `.gitignore` file with this content:
+
+```text
+__pycache__/
+*.py[cod]
+.venv/
+```
+
+This prevents Python cache files and virtual environments from being tracked.
+
+## 2. Write the first version of the program
+
+Create `app.py` with the following code:
+
+```python
+"""A tiny student marks calculator"""
+
+
+def calculate_average(marks):
+    """Return the average mark, or 0 when no marks are supplied."""
+    return sum(marks) / len(marks) if marks else 0
+
+
+def main():
+    marks = [70, 82, 91]
+    average = calculate_average(marks)
+    print(f"Class average: {average:.1f}")
+
+
+if __name__ == "__main__":
+    main()
+```
+
+Create `README.md` with:
+
+    # Student Marks Calculator
+
+    A small Python project for learning Git.
+
+    ## Run the program
+
+    Run `python3 app.py`.
+
+Run the program:
+
+```bash
 python3 app.py
 ```
 
-`git status` tells you which files Git sees as new, changed, or ready to commit. Run it often.
+Expected output:
 
-## 2. Inspect the existing history
-
-```bash
-git log --oneline --graph --all
-git branch --all
+```text
+Class average: 81.0
 ```
 
-Each line in the log is a **commit**: a saved checkpoint. A **branch** is a named line of work that points to commits.
-
-## 3. Make and commit a small change
-
-Open `README.md`. Add your name below the title, for example:
-
-```md
-Prepared by: Your Name
-```
-
-Now inspect and save the change:
+## 3. Inspect, stage, and commit the initial files
 
 ```bash
 git status
-git diff
-git add README.md
+git add .gitignore README.md app.py
 git status
-git commit -m "Add student name to README"
+git commit -m "Add initial marks calculator"
+git log --oneline
 ```
 
-The three important places are:
+`git add` moves selected changes to the staging area. `git commit` saves those staged changes as a checkpoint.
 
-1. **Working directory** — files you are editing.
-2. **Staging area** — selected changes after `git add`.
-3. **Repository history** — saved checkpoints after `git commit`.
+## 4. Add grades on a feature branch
 
-Check that your commit exists:
+Create and switch to the same feature branch used in this project:
 
 ```bash
-git log --oneline -5
-```
-
-## 4. Create a feature branch
-
-Create a branch for a small improvement:
-
-```bash
-git switch -c feature/welcome-message
+git switch -c feature/grades
 git branch
 ```
 
-In `app.py`, add this line immediately after the `def main():` line:
+Replace `app.py` with this version. The new `calculate_grade` function converts a numeric mark into a letter grade.
 
 ```python
-    print("Welcome to the Student Marks Calculator")
+"""A tiny student marks calculator for a Git teaching demo."""
+
+
+def calculate_average(marks):
+    """Return the average mark, or 0 when no marks are supplied."""
+    return sum(marks) / len(marks) if marks else 0
+
+
+def calculate_grade(mark):
+    """Return a simple letter grade for one mark."""
+    if mark >= 90:
+        return "A"
+    if mark >= 75:
+        return "B"
+    if mark >= 60:
+        return "C"
+    return "D"
+
+
+def main():
+    marks = [70, 82, 91]
+    average = calculate_average(marks)
+    print("Student Marks Calculator")
+    print(f"Class average: {average:.1f}")
+    print(f"Grade for the average: {calculate_grade(average)}")
+
+
+if __name__ == "__main__":
+    main()
 ```
 
-Run the program, inspect the change, and commit it:
+Test and commit the feature:
 
 ```bash
 python3 app.py
 git diff
 git add app.py
-git commit -m "Add welcome message"
+git commit -m "Add grade calculation"
 ```
 
-## 5. Merge the feature into `main`
+## 5. Make a change on `main` and merge the feature
 
-Move back to the main branch and merge your completed feature:
+Return to `main`:
 
 ```bash
 git switch main
-git merge --no-ff feature/welcome-message -m "Merge welcome message"
+```
+
+Now merge the grade feature:
+
+```bash
+git merge feature/grades -m "Merge grade calculation"
 git log --oneline --graph --all
 ```
 
-`--no-ff` asks Git to create a merge commit, making the branch-and-merge story clear in the graph.
+The graph now shows two lines of work joining at a merge commit.
 
-## 6. Practise rebase
+## 6. Add named students on another branch
 
-Create another feature branch and make one small change:
+Create a second feature branch:
 
 ```bash
-git switch -c feature/student-count
+git switch -c feature/student-names
 ```
 
-In `app.py`, add this line after the line that prints the student names:
+Create `students.py`:
 
 ```python
-    print(f"Number of students: {len(STUDENTS)}")
+"""Sample student data used by the Git demo."""
+
+STUDENTS = [
+    ("Aarav", 70),
+    ("Diya", 82),
+    ("Kabir", 91),
+]
+```
+
+Then replace `app.py` with this version:
+
+```python
+"""A tiny student marks calculator"""
+
+from students import STUDENTS
+
+
+def calculate_average(marks):
+    """Return the average mark, or 0 when no marks are supplied."""
+    return sum(marks) / len(marks) if marks else 0
+
+
+def calculate_grade(mark):
+    """Return a simple letter grade for one mark."""
+    if mark >= 90:
+        return "A"
+    if mark >= 75:
+        return "B"
+    if mark >= 60:
+        return "C"
+    return "D"
+
+
+def main():
+    marks = [mark for _, mark in STUDENTS]
+    average = calculate_average(marks)
+    print("Student Marks Calculator")
+    print("Students: " + ", ".join(name for name, _ in STUDENTS))
+    print(f"Class average: {average:.1f}")
+    print(f"Grade for the average: {calculate_grade(average)}")
+
+
+if __name__ == "__main__":
+    main()
+```
+
+Test and commit:
+
+```bash
+python3 app.py
+git add app.py students.py
+git commit -m "Add named student data"
+```
+
+## 7. Rebase the student-names branch
+
+First, make a new commit on `main` while the feature branch is waiting:
+
+```bash
+git switch main
+```
+
+Add this line to the `README.md` file list:
+
+```md
+- `students.py` will contain sample student names after the rebase demo.
+```
+
+Commit it:
+
+```bash
+git add README.md
+git commit -m "Document planned student data"
+```
+
+Return to the feature branch and rebase it onto the newest `main`:
+
+```bash
+git switch feature/student-names
+git rebase main
+git log --oneline --graph --all
+```
+
+Rebase takes the feature commit and replays it after the latest commit on `main`. This is appropriate for a private branch that only you are using.
+
+Merge the rebased branch:
+
+```bash
+git switch main
+git merge feature/student-names -m "Merge named student data"
+```
+
+## 8. Create and resolve the same merge conflict
+
+Both branches will now change the same heading line in `app.py`.
+
+Create the feature branch:
+
+```bash
+git switch -c feature/output-heading
+```
+
+Change this line:
+
+```python
+print("Student Marks Calculator")
+```
+
+to:
+
+```python
+print("Class Marks Summary")
 ```
 
 Commit it:
 
 ```bash
 git add app.py
-git commit -m "Display number of students"
+git commit -m "Rename output heading on feature branch"
 ```
 
-Now make an independent commit on `main`:
+Now make a different change to the same line on `main`:
 
 ```bash
 git switch main
 ```
 
-Add one short sentence anywhere in `README.md`, then run:
-
-```bash
-git add README.md
-git commit -m "Add study reminder"
-```
-
-Rebase the feature onto the latest `main`:
-
-```bash
-git switch feature/student-count
-git rebase main
-git log --oneline --graph --all
-```
-
-Rebase replays your feature commit on top of the newest `main`. Merge the rebased feature when it is ready:
-
-```bash
-git switch main
-git merge --no-ff feature/student-count -m "Merge student count"
-```
-
-## 7. See a merge conflict safely
-
-Create two branches that edit the same line differently.
-
-First branch:
-
-```bash
-git switch -c feature/heading-a
-```
-
-In `app.py`, change the heading text to:
+Change the heading to:
 
 ```python
-    print("Class Marks Summary")
+print("Student Results")
 ```
 
-Then commit it:
+Then commit and merge:
 
 ```bash
 git add app.py
-git commit -m "Change heading on feature branch"
+git commit -m "Improve output heading on main"
+git merge feature/output-heading
 ```
 
-Create a different change on `main`:
-
-```bash
-git switch main
-```
-
-Change that same heading line to:
-
-```python
-    print("Student Results")
-```
-
-Commit the main-branch version, then merge the feature:
-
-```bash
-git add app.py
-git commit -m "Change heading on main"
-git merge feature/heading-a
-```
-
-Git should report a conflict. Open `app.py`; you will see markers like:
-
-```text
-<<<<<<< HEAD
-    print("Student Results")
-=======
-    print("Class Marks Summary")
->>>>>>> feature/heading-a
-```
-
-Replace all those lines with one final choice, for example:
+Git will stop because it cannot decide which heading to keep. Open `app.py` and replace the conflict markers and both versions with this one final line:
 
 ```python
     print("Student Marks Summary")
 ```
 
-Then finish the merge:
+Finish the merge:
 
 ```bash
 python3 app.py
 git add app.py
-git commit -m "Resolve heading conflict"
+git commit -m "Resolve output heading conflict"
 ```
 
-If you want to cancel an unfinished merge instead, use:
+If you need to abandon a merge before committing it, run `git merge --abort`.
+
+## 9. Check your finished project
 
 ```bash
-git merge --abort
-```
-
-## 8. Useful commands to remember
-
-```bash
-git status                       # See the current state
-git diff                         # See unstaged edits
-git diff --staged                # See staged edits
-git log --oneline --graph --all  # See branches and commits
-git restore filename.py          # Discard an unstaged change
-git switch branch-name           # Change branch
-```
-
-## Finish
-
-Run this command and make sure you can explain the graph:
-
-```bash
+python3 app.py
+git status
 git log --oneline --graph --all
 ```
 
-You have practised the core Git workflow: change files, inspect them, stage them, commit them, work on branches, merge work, rebase a private feature branch, and resolve a conflict.
+Your program should print:
+
+```text
+Student Marks Summary
+Students: Aarav, Diya, Kabir
+Class average: 81.0
+Grade for the average: B
+```
+
+You have recreated the same project journey: initialization, commits, a feature branch, merge, rebase, merge conflict, and conflict resolution.
